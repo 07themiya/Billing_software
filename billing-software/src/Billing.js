@@ -1,78 +1,113 @@
 import React, { useState, useEffect } from "react";
 import { getDatabase, ref, onValue } from "firebase/database";
-import "./Billing.css";
+import './App.css';
+import './Billing.css';
 
-const Billing = () => {
+function Billing() {
   const [items, setItems] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [billItems, setBillItems] = useState([]);
+  const [selectedItem, setSelectedItem] = useState("");
+  const [quantity, setQuantity] = useState(1);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    const database = getDatabase();
-    const itemsRef = ref(database, "items");
+    const db = getDatabase();
+    const itemsRef = ref(db, "items");
     onValue(itemsRef, (snapshot) => {
       const data = snapshot.val();
-      const itemList = data ? Object.keys(data).map((key) => ({ id: key, ...data[key] })) : [];
-      setItems(itemList);
+      if (data) {
+        const itemList = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        }));
+        setItems(itemList);
+      }
     });
   }, []);
 
-  const handleItemChange = (index, field, value) => {
-    const updatedItems = [...selectedItems];
-    if (!updatedItems[index]) {
-      updatedItems[index] = { itemName: "", price: 0, quantity: 0 };
+  const addItemToBill = () => {
+    const item = items.find((item) => item.id === selectedItem);
+    if (item) {
+      const existingItem = billItems.find((billItem) => billItem.id === item.id);
+      if (existingItem) {
+        // Update quantity if the item is already added
+        setBillItems(
+          billItems.map((billItem) =>
+            billItem.id === item.id
+              ? { ...billItem, quantity: billItem.quantity + parseInt(quantity) }
+              : billItem
+          )
+        );
+      } else {
+        // Add new item to bill
+        setBillItems([...billItems, { ...item, quantity: parseInt(quantity) }]);
+      }
     }
-    updatedItems[index][field] = value;
-
-    if (field === "itemName") {
-      const selectedItem = items.find((item) => item.itemName === value);
-      updatedItems[index].price = selectedItem ? selectedItem.price : 0;
-    }
-
-    setSelectedItems(updatedItems);
   };
 
   const calculateTotal = () => {
-    const totalCost = selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    setTotal(totalCost);
+    const totalAmount = billItems.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
+    setTotal(totalAmount);
   };
 
   return (
-    <div className="billing-container">
-      <h2>Billing Page</h2>
-      <div className="billing-card">
-        {selectedItems.map((item, index) => (
-          <div className="billing-row" key={index}>
-            <select
-              onChange={(e) => handleItemChange(index, "itemName", e.target.value)}
-              value={item.itemName}
-            >
-              <option value="">Select Item</option>
-              {items.map((item) => (
-                <option key={item.id} value={item.itemName}>
-                  {item.itemName}
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              placeholder="Quantity"
-              value={item.quantity || ""}
-              onChange={(e) => handleItemChange(index, "quantity", parseInt(e.target.value))}
-            />
-            <span>Price: {item.price || 0}</span>
-          </div>
-        ))}
-        <button className="add-row-btn" onClick={() => setSelectedItems([...selectedItems, {}])}>
-          Add Items
-        </button>
+    <div className="billing-page">
+      <h2>Billing</h2>
+      <div className="billing-form">
+        <label htmlFor="item-select">Select Item:</label>
+        <select
+          id="item-select"
+          value={selectedItem}
+          onChange={(e) => setSelectedItem(e.target.value)}
+        >
+          <option value="">Select Item</option>
+          {items.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.itemName} - Rs.{item.price}
+            </option>
+          ))}
+        </select>
+        <label htmlFor="quantity-input">Quantity:</label>
+        <input
+          id="quantity-input"
+          type="number"
+          min="1"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          placeholder="Quantity"
+        />
+        <button onClick={addItemToBill}>Add Item</button>
       </div>
-      <button className="calculate-btn" onClick={calculateTotal}>
-        Calculate Total
-      </button>
-      <h3>Total: {total}</h3>
+      <div className="bill-items">
+        <h3>Bill Items</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Item Name</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {billItems.map((item) => (
+              <tr key={item.id}>
+                <td>{item.itemName}</td>
+                <td>Rs.{item.price}</td>
+                <td>{item.quantity}</td>
+                <td>Rs.{item.price * item.quantity}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button onClick={calculateTotal}>Calculate Total</button>
+      {total > 0 && <h3>Total: Rs.{total}</h3>}
     </div>
   );
-};
+}
 
 export default Billing;

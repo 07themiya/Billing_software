@@ -58,4 +58,46 @@
     text-align: center;
     color: #333;
   }
+
+  .billing-page {
+    margin: 20px auto;
+    text-align: center;
+    width: 80%;
+  }
+  
+  .billing-form {
+    margin: 20px 0;
+  }
+  
+  .billing-form select, .billing-form input, .billing-form button {
+    margin: 5px;
+    padding: 10px;
+    font-size: 1rem;
+  }
+  
+  .bill-items table {
+    margin: 20px auto;
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .bill-items th, .bill-items td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .bill-items th {
+    background-color: #f4f4f4;
+  }
+
+  .calculate-btn {
+  background-color: #253adf;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 14px;
+  }
   

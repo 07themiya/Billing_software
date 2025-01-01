@@ -1,36 +1,34 @@
-.navbar {
-  background-color: #4CAF50; /* Green background */
-  padding: 15px; /* Padding */
+.billing-page {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.billing-form {
   display: flex;
-  justify-content: center; /* Center align links */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  justify-content: space-around;
+  margin-bottom: 20px;
 }
 
-.nav-link {
-  color: white;
-  text-decoration: none;
-  font-size: 18px;
-  margin: 0 15px;
-  padding: 8px 16px;
-  border-radius: 4px;
-  transition: background-color 0.3s ease; /* Smooth hover effect */
+.billing-form select,
+.billing-form input {
+  padding: 10px;
+  margin-right: 10px;
 }
 
-.nav-link:hover {
-  background-color: #45a049; /* Slightly darker green */
+.bill-items table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
 }
 
-.logout-btn {
-  background-color: #ff4d4d;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
+.bill-items th,
+.bill-items td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
 }
 
-.logout-btn:hover {
-  background-color: #e60000;
+.bill-items th {
+  background-color: #f2f2f2;
 }
-
