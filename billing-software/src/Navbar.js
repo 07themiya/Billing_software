@@ -19,6 +19,7 @@ function Navbar() {
       {/* Left Section */}
       <div className="nav-left">
         <a href="/add-item">Add Item</a>
+        <a href="/upload">Update</a>
         <a href="/billing">Billing</a>
       </div>
 

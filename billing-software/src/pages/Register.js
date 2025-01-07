@@ -85,6 +85,7 @@ const Register = () => {
         <button type="submit">Register</button>
       </form>
       {error && <p style={{ color: "red" }}>{error}</p>}
+      <p>Already have an account? <a href="/Login">Login</a></p>
     </div>
   );
 };
