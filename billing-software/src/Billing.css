@@ -1,103 +1,51 @@
+.billing-page {
+  padding: 20px;
+}
+
 .billing-container {
-    max-width: 800px;
-    margin: 30px auto;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-  }
-  
-  h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-  }
-  
-  .billing-card {
-    background: #f9f9f9;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .billing-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  
-  .billing-row select,
-  .billing-row input {
-    margin-right: 10px;
-    padding: 8px;
-    font-size: 16px;
-  }
-  
-  .billing-row span {
-    margin-left: 10px;
-    font-weight: bold;
-  }
-  
-  .add-row-btn,
-  .calculate-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.3s ease;
-  }
-  
-  .add-row-btn:hover,
-  .calculate-btn:hover {
-    background-color: #45a049;
-  }
-  
-  h3 {
-    text-align: center;
-    color: #333;
-  }
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
 
-  .billing-page {
-    margin: 20px auto;
-    text-align: center;
-    width: 80%;
-  }
-  
-  .billing-form {
-    margin: 20px 0;
-  }
-  
-  .billing-form select, .billing-form input, .billing-form button {
-    margin: 5px;
-    padding: 10px;
-    font-size: 1rem;
-  }
-  
-  .bill-items table {
-    margin: 20px auto;
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .bill-items th, .bill-items td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
-  }
-  
-  .bill-items th {
-    background-color: #f4f4f4;
-  }
+/* Left section takes up 2/3 of the page */
+.billing-left {
+  flex: 2;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
 
-  .calculate-btn {
-  background-color: #253adf;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  cursor: pointer;
-  border-radius: 5px;
-  font-size: 14px;
-  }
-  
+/* Right section takes up 1/3 of the page */
+.billing-right {
+  flex: 1;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f1f1f1;
+}
+
+.billing-form,
+.billing-items {
+  margin-bottom: 20px;
+}
+
+.billing-left table,
+.billing-right table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.billing-left table th,
+.billing-left table td,
+.billing-right table th,
+.billing-right table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.billing-right .bill-header p {
+  margin: 5px 0;
+}

@@ -4,24 +4,28 @@ import AddItem from "./AddItem";
 import Billing from "./Billing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import UploadPage from "./UploadPage"; // Import the UploadPage component
+import UploadPage from "./UploadPage"; 
+import Footer from "./Footer";
 import "./App.css";
-
-function NavigationBar() {
-  const location = useLocation();
-
-  // Conditionally render the navigation bar only if not on login or register pages
-  if (location.pathname === "/login" || location.pathname === "/register") {
-    return null;
-  }
-
-  return <Navbar />;
-}
 
 function App() {
   return (
     <Router>
-      <NavigationBar />
+      <MainContent />
+    </Router>
+  );
+}
+
+function MainContent() {
+  const location = useLocation();
+
+  // Define routes where the Navbar should not appear
+  const hideNavbarOnRoutes = ["/login", "/register"];
+
+  return (
+    <>
+      {/* Render Navbar only if the current path is not in the hideNavbarOnRoutes */}
+      {!hideNavbarOnRoutes.includes(location.pathname) && <Navbar />}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -29,7 +33,8 @@ function App() {
         <Route path="/billing" element={<Billing />} />
         <Route path="/upload" element={<UploadPage />} />
       </Routes>
-    </Router>
+      <Footer />
+    </>
   );
 }
 
