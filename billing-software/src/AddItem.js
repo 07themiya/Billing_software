@@ -4,7 +4,9 @@ import app from "./firebaseConfig"; // Import the Firebase app
 import "./AddItem.css";
 
 const AddItem = () => {
-  const [items, setItems] = useState([{ itemName: "", price: "", quantity: "" }]);
+  const [items, setItems] = useState([
+    { itemName: "", price: "", quantity: "", lowLimit: "" },
+  ]);
   const [successMessage, setSuccessMessage] = useState("");
 
   const handleInputChange = (index, field, value) => {
@@ -14,7 +16,10 @@ const AddItem = () => {
   };
 
   const addNewItemRow = () => {
-    setItems([...items, { itemName: "", price: "", quantity: "" }]);
+    setItems([
+      ...items,
+      { itemName: "", price: "", quantity: "", lowLimit: "" },
+    ]);
   };
 
   const handleAddItems = () => {
@@ -26,6 +31,7 @@ const AddItem = () => {
         itemName: item.itemName,
         price: parseFloat(item.price),
         quantity: parseInt(item.quantity),
+        lowLimit: parseInt(item.lowLimit),
       };
 
       push(itemsRef, newItem)
@@ -38,7 +44,7 @@ const AddItem = () => {
     });
 
     // Clear all input rows after successful addition
-    setItems([{ itemName: "", price: "", quantity: "" }]);
+    setItems([{ itemName: "", price: "", quantity: "", lowLimit: "" }]);
   };
 
   return (
@@ -54,21 +60,36 @@ const AddItem = () => {
             type="text"
             placeholder="Item Name"
             value={item.itemName}
-            onChange={(e) => handleInputChange(index, "itemName", e.target.value)}
+            onChange={(e) =>
+              handleInputChange(index, "itemName", e.target.value)
+            }
             required
           />
           <input
             type="number"
             placeholder="Price"
             value={item.price}
-            onChange={(e) => handleInputChange(index, "price", e.target.value)}
+            onChange={(e) =>
+              handleInputChange(index, "price", e.target.value)
+            }
             required
           />
           <input
             type="number"
             placeholder="Quantity"
             value={item.quantity}
-            onChange={(e) => handleInputChange(index, "quantity", e.target.value)}
+            onChange={(e) =>
+              handleInputChange(index, "quantity", e.target.value)
+            }
+            required
+          />
+          <input
+            type="number"
+            placeholder="Low Limit"
+            value={item.lowLimit}
+            onChange={(e) =>
+              handleInputChange(index, "lowLimit", e.target.value)
+            }
             required
           />
         </div>
