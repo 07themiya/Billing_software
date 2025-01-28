@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between; /* Separates left and right sections */
   align-items: center;
-  background-color: #39e06b;
+  background-color: #083248;
   padding: 10px 20px;
   color: white;
 }
@@ -13,7 +13,7 @@
 }
 
 .nav-left a {
-  background-color: #f44336;
+  background-color: #4e07; /* Fixed hex code case */
   color: white;
   border: none;
   padding: 10px 15px;
@@ -21,6 +21,12 @@
   border-radius: 5px;
   font-size: 14px;
   margin-right: 10px;
+  text-decoration: none; /* Ensures no underline on links */
+  transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.nav-left a:hover {
+  background-color: #005f7a; /* Updated hover color */
 }
 
 .nav-right {
@@ -36,16 +42,71 @@
   cursor: pointer;
   border-radius: 5px;
   font-size: 14px;
+  transition: background-color 0.3s ease; /* Smooth hover effect */
 }
 
 .nav-right .logout-btn:hover {
   background-color: #d32f2f;
 }
 
-a:hover {
-  text-decoration: underline;
-}
-
 .nav-title {
   font-size: 24px;
+  font-weight: bold; /* Makes the title stand out */
 }
+
+.notification-container {
+  position: relative;
+}
+
+.notification-icon {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: white; /* Ensures visibility on dark background */
+  transition: transform 0.3s ease; /* Adds hover effect */
+}
+
+.notification-icon:hover {
+  transform: scale(1.2); /* Enlarges icon on hover */
+}
+
+.notifications-dropdown {
+  position: absolute;
+  top: 40px; /* Adjusted spacing from icon */
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 250px;
+  z-index: 1000;
+}
+
+.notifications-dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notifications-dropdown li {
+  padding: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333; /* Improves readability */
+}
+
+.notifications-dropdown li:hover {
+  background-color: #f9f9f9; /* Adds hover effect */
+}
+
+.notifications-dropdown li:last-child {
+  border-bottom: none;
+}
+
+.notifications-dropdown p {
+  padding: 10px;
+  text-align: center;
+  color: #666;
+  font-size: 14px; /* Consistent font size */
+}
+
