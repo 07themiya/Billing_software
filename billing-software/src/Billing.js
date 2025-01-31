@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
+import Select from "react-select";
 import { getDatabase, ref, onValue, update } from "firebase/database";
-import './App.css';
-import './Billing.css';
+import "./App.css";
+import "./Billing.css";
 
 function Billing() {
   const [items, setItems] = useState([]);
   const [billItems, setBillItems] = useState([]);
-  const [selectedItem, setSelectedItem] = useState("");
+  const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [total, setTotal] = useState(0);
   const [isQuotation, setIsQuotation] = useState(false);
@@ -22,6 +23,7 @@ function Billing() {
         const itemList = Object.keys(data).map((key) => ({
           id: key,
           ...data[key],
+          quantity: data[key].quantity || 0, // Default quantity to 0 if missing
         }));
         setItems(itemList);
       }
@@ -29,7 +31,7 @@ function Billing() {
   }, []);
 
   const addItemToBill = () => {
-    const item = items.find((item) => item.id === selectedItem);
+    const item = items.find((item) => item.id === selectedItem.value);
     if (item) {
       const existingItem = billItems.find((billItem) => billItem.id === item.id);
       if (existingItem) {
@@ -55,20 +57,45 @@ function Billing() {
     );
     setTotal(totalAmount);
 
-    // Deduct quantities from the database only if "Price Quotation" is unchecked
     if (!isQuotation) {
       const db = getDatabase();
       billItems.forEach((billItem) => {
-        const itemRef = ref(db, `items/${billItem.id}`);
-        const updatedQuantity = billItem.stock - billItem.quantity;
-        update(itemRef, { stock: updatedQuantity });
+        const purchaseQuantity = parseInt(billItem.quantity, 10); // Quantity purchased
+        const currentStock = parseInt(
+          items.find((item) => item.id === billItem.id)?.quantity || 0,
+          10
+        ); // Current stock
+
+        if (isNaN(purchaseQuantity) || isNaN(currentStock)) {
+          console.error(
+            `Invalid quantity or stock for item: ${billItem.itemName}. Stock: ${currentStock}, Quantity: ${purchaseQuantity}`
+          );
+          return; // Skip this item
+        }
+
+        const updatedQuantity = currentStock - purchaseQuantity;
+
+        if (updatedQuantity >= 0) {
+          const itemRef = ref(db, `items/${billItem.id}`);
+          update(itemRef, { quantity: updatedQuantity }).catch((error) => {
+            console.error(`Failed to update quantity for ${billItem.itemName}:`, error);
+          });
+        } else {
+          alert(
+            `Insufficient stock for ${billItem.itemName}. Available: ${currentStock}, Requested: ${purchaseQuantity}`
+          );
+        }
       });
     }
   };
 
   const handlePrint = () => {
+    const currentDate = new Date().toLocaleDateString();
+    const currentTime = new Date().toLocaleTimeString();
+    const billNumber = Math.floor(100000 + Math.random() * 900000);
+
     const printContent = printRef.current.innerHTML;
-    const newWindow = window.open('', '_blank', 'width=400,height=600');
+    const newWindow = window.open("", "_blank", "width=400,height=600");
     newWindow.document.write(`
       <html>
         <head>
@@ -82,6 +109,7 @@ function Billing() {
             }
             .bill-header {
               margin-bottom: 10px;
+              text-align: left;
             }
             table {
               width: 100%;
@@ -89,7 +117,7 @@ function Billing() {
               margin: 10px 0;
             }
             table, th, td {
-              border: 1px solid black;
+              border: none;
             }
             th, td {
               padding: 5px;
@@ -109,6 +137,15 @@ function Billing() {
     newWindow.print();
   };
 
+  const options = items.map((item) => ({
+    value: item.id,
+    label: `${item.itemName} - Rs.${item.price}`,
+  }));
+
+  const handleChange = (selectedOption) => {
+    setSelectedItem(selectedOption);
+  };
+
   return (
     <div className="billing-page">
       <div className="billing-container">
@@ -117,18 +154,36 @@ function Billing() {
           <h2>Billing Process</h2>
           <div className="billing-form">
             <label htmlFor="item-select">Select Item:</label>
-            <select
-              id="item-select"
+            <Select
+              className="basic-single"
+              classNamePrefix="select"
               value={selectedItem}
-              onChange={(e) => setSelectedItem(e.target.value)}
-            >
-              <option value="">Select Item</option>
-              {items.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.itemName} - Rs.{item.price}
-                </option>
-              ))}
-            </select>
+              onChange={handleChange}
+              isClearable={true}
+              isSearchable={true}
+              name="item"
+              options={options}
+              placeholder="Select Item"
+              menuPortalTarget={document.body} // Ensures the dropdown can expand beyond the container
+              styles={{
+                menuPortal: (base) => ({
+                  ...base,
+                  zIndex: 9999, // Ensures the dropdown is above other elements
+                }),
+                menu: (base) => ({
+                  ...base,
+                  width: "300px", // Adjust the dropdown menu width
+                }),
+                control: (base) => ({
+                  ...base,
+                  height: "50px",
+                  width: "300px", // Adjust the search bar width
+                  minHeight: "30px",
+                  minWidth: "300px",
+                }),
+              }}
+            />
+
             <label htmlFor="quantity-input">Quantity:</label>
             <input
               id="quantity-input"
@@ -172,7 +227,8 @@ function Billing() {
               </tbody>
             </table>
           </div>
-          <button onClick={calculateTotal}>Calculate Total</button>
+          <button className="calculate-button" onClick={calculateTotal}>Calculate Total</button>
+          <button className="print-button" onClick={handlePrint}>Print</button>
         </div>
 
         {/* Right Column */}
@@ -181,6 +237,10 @@ function Billing() {
           <div className="bill-header">
             <p>Contact: +94 71 234 5678</p>
             <p>Address: 123 Main Street, Colombo</p>
+            <p>-------------------------------------------------------------------</p>
+            <p>Date: {new Date().toLocaleDateString()} Time: {new Date().toLocaleTimeString()}</p>
+            <p>Bill Number: {Math.floor(100000 + Math.random() * 900000)}</p>
+            <p>-------------------------------------------------------------------</p>
           </div>
           <table>
             <thead>
@@ -194,15 +254,26 @@ function Billing() {
               {billItems.map((item) => (
                 <tr key={item.id}>
                   <td>{item.itemName}</td>
-                  <td>{item.quantity}</td>
+                  <td style={{ textAlign: "center" }}>{item.quantity}</td>
                   <td>Rs.{item.price * item.quantity}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <h3>Total: Rs.{total}</h3>
-          <button onClick={handlePrint}>Print</button>
+
+          <p>-------------------------------------------------------------------</p>
+          <h3 style={{ textAlign: "left" }}>Total: Rs.{total}</h3>
+
+          <div className="bill-footer">
+            <p>**********************************************************</p>
+            <p>Thank you for your business!</p>
+            <p>**********************************************************</p>
+            <p>Software By: Thushan Chathuranga <br />
+              Contact: thushanthemiya@gmail.com </p>
+          </div>
+
         </div>
+
       </div>
     </div>
   );

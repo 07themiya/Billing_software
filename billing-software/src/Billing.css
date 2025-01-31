@@ -4,8 +4,10 @@
 
 .billing-container {
   display: flex;
+  width: 140%;
   flex-direction: row;
   gap: 20px;
+  align-self: center;
 }
 
 /* Left section takes up 2/3 of the page */
@@ -38,14 +40,69 @@
 }
 
 .billing-left table th,
-.billing-left table td,
-.billing-right table th,
-.billing-right table td {
+.billing-left table td{
   border: 1px solid #ddd;
   padding: 8px;
   text-align: left;
 }
 
+.billing-right table th,
+.billing-right table td {
+  border: none;
+  padding: 8px;
+  text-align: left;
+}
+
 .billing-right .bill-header p {
+  text-align: left;
   margin: 5px 0;
+}
+
+.select__menu {
+  width: 300px !important; /* Force dropdown menu width */
+}
+
+.Select{
+  width: 300px !important;
+}
+
+#quantity-input {
+  width: 100px; /* Fixed width */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f9f9f9;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#quantity-input:focus {
+  border-color: #007bff; /* Highlight border on focus */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add a soft blue glow */
+  outline: none;
+}
+
+#quantity-input::placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
+.print-button {
+  background-color: #007bff !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  transition: background-color 0.3s ease !important;
+}
+
+.calculate-button {
+  background-color: #f44336 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  transition: background-color 0.3s ease !important;
 }
