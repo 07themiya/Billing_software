@@ -5,7 +5,8 @@ import AddItem from "./AddItem";
 import Billing from "./Billing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import UploadPage from "./UploadPage"; 
+import UploadPage from "./UploadPage";
+import BillHistory from "./BillHistory"; 
 import Footer from "./Footer";
 import "./App.css";
 
@@ -44,6 +45,7 @@ function MainContent({ toggleTheme, currentTheme }) {
         <Route path="/add-item" element={<AddItem />} />
         <Route path="/billing" element={<Billing />} />
         <Route path="/upload" element={<UploadPage />} />
+        <Route path="/billhistory" element={<BillHistory />} />
       </Routes>
       <Footer />
     </>
