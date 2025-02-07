@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Select from "react-select";
-import { getDatabase, ref, onValue, update } from "firebase/database";
+import { getDatabase, ref, onValue, update, push } from "firebase/database";
 import "./App.css";
 import "./Billing.css";
 
@@ -11,6 +11,8 @@ function Billing() {
   const [quantity, setQuantity] = useState(1);
   const [total, setTotal] = useState(0);
   const [isQuotation, setIsQuotation] = useState(false);
+  const [billNumber, setBillNumber] = useState("");
+  const [selectedItemsToRemove, setSelectedItemsToRemove] = useState([]); // Track selected items for removal
 
   const printRef = useRef(null);
 
@@ -30,14 +32,62 @@ function Billing() {
     });
   }, []);
 
+  // Function to generate the next bill number
+  const generateBillNumber = async () => {
+    const db = getDatabase();
+    const billsRef = ref(db, "Bills");
+    const snapshot = await onValue(billsRef, (snapshot) => {
+      const bills = snapshot.val();
+      if (bills) {
+        const lastBillKey = Object.keys(bills).pop();
+        const lastBillNumber = bills[lastBillKey].billNumber;
+        const nextNumber = getNextBillNumber(lastBillNumber);
+        setBillNumber(nextNumber);
+      } else {
+        setBillNumber("A0001"); // If no bills exist, start with A0001
+      }
+    });
+  };
+
+  // Helper function to generate the next bill number
+  const getNextBillNumber = (lastBillNumber) => {
+    if (!lastBillNumber) return "A0001";
+
+    let prefix = lastBillNumber.match(/[A-Z]+/)[0];
+    let number = parseInt(lastBillNumber.match(/\d+/)[0]);
+
+    if (number === 9999) {
+      prefix = incrementPrefix(prefix);
+      number = 1;
+    } else {
+      number++;
+    }
+
+    return `${prefix}${String(number).padStart(4, "0")}`;
+  };
+
+  // Helper function to increment the prefix (A -> B, Z -> AA, etc.)
+  const incrementPrefix = (prefix) => {
+    let lastChar = prefix.slice(-1);
+    if (lastChar === "Z") {
+      return prefix.length === 1 ? "AA" : incrementPrefix(prefix.slice(0, -1)) + "A";
+    } else {
+      return prefix.slice(0, -1) + String.fromCharCode(lastChar.charCodeAt(0) + 1);
+    }
+  };
+
+  useEffect(() => {
+    generateBillNumber();
+  }, []);
+
   const addItemToBill = () => {
     const item = items.find((item) => item.id === selectedItem.value);
     if (item) {
       const existingItem = billItems.find((billItem) => billItem.id === item.id);
       if (existingItem) {
         // Update quantity if the item is already added
-        setBillItems(
-          billItems.map((billItem) =>
+        setBillItems((prevBillItems) =>
+          prevBillItems.map((billItem) =>
             billItem.id === item.id
               ? { ...billItem, quantity: billItem.quantity + parseInt(quantity) }
               : billItem
@@ -45,9 +95,29 @@ function Billing() {
         );
       } else {
         // Add new item to bill
-        setBillItems([...billItems, { ...item, quantity: parseInt(quantity) }]);
+        setBillItems((prevBillItems) => [
+          ...prevBillItems,
+          { ...item, quantity: parseInt(quantity) },
+        ]);
       }
     }
+  };
+
+  // Function to handle checkbox selection for item removal
+  const handleCheckboxChange = (itemId) => {
+    setSelectedItemsToRemove((prevSelected) =>
+      prevSelected.includes(itemId)
+        ? prevSelected.filter((id) => id !== itemId) // Deselect if already selected
+        : [...prevSelected, itemId] // Select if not already selected
+    );
+  };
+
+  // Function to remove selected items
+  const handleRemoveItems = () => {
+    setBillItems((prevBillItems) =>
+      prevBillItems.filter((item) => !selectedItemsToRemove.includes(item.id))
+    );
+    setSelectedItemsToRemove([]); // Clear the selection after removal
   };
 
   const calculateTotal = () => {
@@ -86,14 +156,27 @@ function Billing() {
           );
         }
       });
+
+      // Save the bill to Firebase
+      const billRef = ref(db, "Bills");
+      const newBill = {
+        billNumber,
+        items: billItems,
+        total: totalAmount,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+      };
+      push(billRef, newBill)
+        .then(() => {
+          console.log("Bill saved successfully!");
+        })
+        .catch((error) => {
+          console.error("Error saving bill:", error);
+        });
     }
   };
 
   const handlePrint = () => {
-    const currentDate = new Date().toLocaleDateString();
-    const currentTime = new Date().toLocaleTimeString();
-    const billNumber = Math.floor(100000 + Math.random() * 900000);
-
     const printContent = printRef.current.innerHTML;
     const newWindow = window.open("", "_blank", "width=400,height=600");
     newWindow.document.write(`
@@ -135,6 +218,16 @@ function Billing() {
     `);
     newWindow.document.close();
     newWindow.print();
+  };
+
+  // Function to reset the billing page for a new bill
+  const handleNewBill = () => {
+    setBillItems([]); // Clear bill items
+    setTotal(0); // Reset total
+    setSelectedItem(null); // Clear selected item
+    setQuantity(1); // Reset quantity
+    setIsQuotation(false); // Reset quotation checkbox
+    generateBillNumber(); // Generate a new bill number
   };
 
   const options = items.map((item) => ({
@@ -203,12 +296,16 @@ function Billing() {
               onChange={(e) => setIsQuotation(e.target.checked)}
             />
             <label htmlFor="price-quotation">Price Quotation</label>
+            <button className="new-bill-button" onClick={handleNewBill}>
+              New Bill
+            </button>
           </div>
           <div className="bill-items">
             <h3>Bill Items</h3>
             <table>
               <thead>
                 <tr>
+                  <th></th> {/* Checkbox column */}
                   <th>Item Name</th>
                   <th>Price</th>
                   <th>Quantity</th>
@@ -218,6 +315,13 @@ function Billing() {
               <tbody>
                 {billItems.map((item) => (
                   <tr key={item.id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedItemsToRemove.includes(item.id)}
+                        onChange={() => handleCheckboxChange(item.id)}
+                      />
+                    </td>
                     <td>{item.itemName}</td>
                     <td>Rs.{item.price}</td>
                     <td>{item.quantity}</td>
@@ -227,8 +331,17 @@ function Billing() {
               </tbody>
             </table>
           </div>
-          <button className="calculate-button" onClick={calculateTotal}>Calculate Total</button>
-          <button className="print-button" onClick={handlePrint}>Print</button>
+          <div className="action-buttons">
+            <button className="remove-button" onClick={handleRemoveItems}>
+              Remove Item
+            </button>
+            <button className="calculate-button" onClick={calculateTotal}>
+              Calculate Total
+            </button>
+            <button className="print-button" onClick={handlePrint}>
+              Print
+            </button>
+          </div>
         </div>
 
         {/* Right Column */}
@@ -239,7 +352,7 @@ function Billing() {
             <p>Address: 123 Main Street, Colombo</p>
             <p>-------------------------------------------------------------------</p>
             <p>Date: {new Date().toLocaleDateString()} Time: {new Date().toLocaleTimeString()}</p>
-            <p>Bill Number: {Math.floor(100000 + Math.random() * 900000)}</p>
+            <p>Bill Number: {billNumber}</p>
             <p>-------------------------------------------------------------------</p>
           </div>
           <table>

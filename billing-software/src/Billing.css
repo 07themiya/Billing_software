@@ -106,3 +106,23 @@
   cursor: pointer !important;
   transition: background-color 0.3s ease !important;
 }
+
+.remove-button{
+  background-color: #0c9425 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  transition: background-color 0.3s ease !important;
+}
+
+.new-bill-button{
+  background-color: #0c9425 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  transition: background-color 0.3s ease !important;
+}
