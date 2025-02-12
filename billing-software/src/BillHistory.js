@@ -67,7 +67,9 @@ function BillHistory() {
               ))}
             </tbody>
           </table>
-          <h3>Total: Rs.{bill.total}</h3>
+          <h3>Total: Rs.{bill.total}</h3> 
+          <h3>Cash: Rs.{bill.cash}</h3> 
+          <h3>Balance: Rs.{bill.balance}</h3>
         </div>
       )}
     </div>
