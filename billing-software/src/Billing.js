@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Select from "react-select";
 import { getDatabase, ref, onValue, update, push } from "firebase/database";
 import "./App.css";
@@ -9,10 +9,12 @@ function Billing() {
   const [billItems, setBillItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(0); // Total is calculated dynamically
   const [isQuotation, setIsQuotation] = useState(false);
   const [billNumber, setBillNumber] = useState("");
-  const [selectedItemsToRemove, setSelectedItemsToRemove] = useState([]); // Track selected items for removal
+  const [selectedItemsToRemove, setSelectedItemsToRemove] = useState([]);
+  const [cash, setCash] = useState(0); // State for cash amount
+  const [balance, setBalance] = useState(0); // State for balance amount
 
   const printRef = useRef(null);
 
@@ -25,7 +27,7 @@ function Billing() {
         const itemList = Object.keys(data).map((key) => ({
           id: key,
           ...data[key],
-          quantity: data[key].quantity || 0, // Default quantity to 0 if missing
+          quantity: data[key].quantity || 0,
         }));
         setItems(itemList);
       }
@@ -33,10 +35,10 @@ function Billing() {
   }, []);
 
   // Function to generate the next bill number
-  const generateBillNumber = async () => {
+  const generateBillNumber = useCallback(async () => {
     const db = getDatabase();
     const billsRef = ref(db, "Bills");
-    const snapshot = await onValue(billsRef, (snapshot) => {
+    onValue(billsRef, (snapshot) => {
       const bills = snapshot.val();
       if (bills) {
         const lastBillKey = Object.keys(bills).pop();
@@ -47,7 +49,7 @@ function Billing() {
         setBillNumber("A0001"); // If no bills exist, start with A0001
       }
     });
-  };
+  }, []);
 
   // Helper function to generate the next bill number
   const getNextBillNumber = (lastBillNumber) => {
@@ -78,7 +80,21 @@ function Billing() {
 
   useEffect(() => {
     generateBillNumber();
-  }, []);
+  }, [generateBillNumber]);
+
+  // Calculate total dynamically whenever billItems change
+  useEffect(() => {
+    const totalAmount = billItems.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
+    setTotal(totalAmount);
+  }, [billItems]);
+
+  // Calculate balance dynamically whenever cash or total changes
+  useEffect(() => {
+    setBalance(cash - total);
+  }, [cash, total]);
 
   const addItemToBill = () => {
     const item = items.find((item) => item.id === selectedItem.value);
@@ -120,63 +136,59 @@ function Billing() {
     setSelectedItemsToRemove([]); // Clear the selection after removal
   };
 
-  const calculateTotal = () => {
-    const totalAmount = billItems.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0
-    );
-    setTotal(totalAmount);
+  // Function to save the bill to Firebase and print it
+  const handlePrint = () => {
+    const db = getDatabase();
 
-    if (!isQuotation) {
-      const db = getDatabase();
-      billItems.forEach((billItem) => {
-        const purchaseQuantity = parseInt(billItem.quantity, 10); // Quantity purchased
-        const currentStock = parseInt(
-          items.find((item) => item.id === billItem.id)?.quantity || 0,
-          10
-        ); // Current stock
+    // Update stock quantities for each item in the bill
+    billItems.forEach((billItem) => {
+      const purchaseQuantity = parseInt(billItem.quantity, 10); // Quantity purchased
+      const currentStock = parseInt(
+        items.find((item) => item.id === billItem.id)?.quantity || 0,
+        10
+      ); // Current stock
 
-        if (isNaN(purchaseQuantity) || isNaN(currentStock)) {
-          console.error(
-            `Invalid quantity or stock for item: ${billItem.itemName}. Stock: ${currentStock}, Quantity: ${purchaseQuantity}`
-          );
-          return; // Skip this item
-        }
+      if (isNaN(purchaseQuantity) || isNaN(currentStock)) {
+        console.error(
+          `Invalid quantity or stock for item: ${billItem.itemName}. Stock: ${currentStock}, Quantity: ${purchaseQuantity}`
+        );
+        return; // Skip this item
+      }
 
-        const updatedQuantity = currentStock - purchaseQuantity;
+      const updatedQuantity = currentStock - purchaseQuantity;
 
-        if (updatedQuantity >= 0) {
-          const itemRef = ref(db, `items/${billItem.id}`);
-          update(itemRef, { quantity: updatedQuantity }).catch((error) => {
-            console.error(`Failed to update quantity for ${billItem.itemName}:`, error);
-          });
-        } else {
-          alert(
-            `Insufficient stock for ${billItem.itemName}. Available: ${currentStock}, Requested: ${purchaseQuantity}`
-          );
-        }
+      if (updatedQuantity >= 0) {
+        const itemRef = ref(db, `items/${billItem.id}`);
+        update(itemRef, { quantity: updatedQuantity }).catch((error) => {
+          console.error(`Failed to update quantity for ${billItem.itemName}:`, error);
+        });
+      } else {
+        alert(
+          `Insufficient stock for ${billItem.itemName}. Available: ${currentStock}, Requested: ${purchaseQuantity}`
+        );
+      }
+    });
+
+    // Save the bill to Firebase
+    const billRef = ref(db, "Bills");
+    const newBill = {
+      billNumber,
+      items: billItems,
+      total: total,
+      cash: cash,
+      balance: balance,
+      date: new Date().toLocaleDateString(),
+      time: new Date().toLocaleTimeString(),
+    };
+    push(billRef, newBill)
+      .then(() => {
+        console.log("Bill saved successfully!");
+      })
+      .catch((error) => {
+        console.error("Error saving bill:", error);
       });
 
-      // Save the bill to Firebase
-      const billRef = ref(db, "Bills");
-      const newBill = {
-        billNumber,
-        items: billItems,
-        total: totalAmount,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
-      };
-      push(billRef, newBill)
-        .then(() => {
-          console.log("Bill saved successfully!");
-        })
-        .catch((error) => {
-          console.error("Error saving bill:", error);
-        });
-    }
-  };
-
-  const handlePrint = () => {
+    // Print the bill
     const printContent = printRef.current.innerHTML;
     const newWindow = window.open("", "_blank", "width=400,height=600");
     newWindow.document.write(`
@@ -193,6 +205,12 @@ function Billing() {
             .bill-header {
               margin-bottom: 10px;
               text-align: left;
+            }
+            .horizontal_line {
+            width: 90%;
+            height: 5px;
+            border-top: 5px dotted black;
+            line-height: 80%;
             }
             table {
               width: 100%;
@@ -227,6 +245,8 @@ function Billing() {
     setSelectedItem(null); // Clear selected item
     setQuantity(1); // Reset quantity
     setIsQuotation(false); // Reset quotation checkbox
+    setCash(0); // Reset cash
+    setBalance(0); // Reset balance
     generateBillNumber(); // Generate a new bill number
   };
 
@@ -331,12 +351,22 @@ function Billing() {
               </tbody>
             </table>
           </div>
+          <div className="cash-balance">
+            <h3>Total: Rs.{total.toFixed(2)}</h3>
+            <label htmlFor="cash-input">Cash:</label>
+            <input
+              id="cash-input"
+              type="number"
+              min="0"
+              value={cash}
+              onChange={(e) => setCash(parseFloat(e.target.value))}
+              placeholder="Cash"
+            />
+            <h3>Balance: Rs.{balance.toFixed(2)}</h3>
+          </div>
           <div className="action-buttons">
             <button className="remove-button" onClick={handleRemoveItems}>
               Remove Item
-            </button>
-            <button className="calculate-button" onClick={calculateTotal}>
-              Calculate Total
             </button>
             <button className="print-button" onClick={handlePrint}>
               Print
@@ -350,10 +380,10 @@ function Billing() {
           <div className="bill-header">
             <p>Contact: +94 71 234 5678</p>
             <p>Address: 123 Main Street, Colombo</p>
-            <p>-------------------------------------------------------------------</p>
+            <hr></hr>
             <p>Date: {new Date().toLocaleDateString()} Time: {new Date().toLocaleTimeString()}</p>
             <p>Bill Number: {billNumber}</p>
-            <p>-------------------------------------------------------------------</p>
+            <hr></hr>
           </div>
           <table>
             <thead>
@@ -374,13 +404,15 @@ function Billing() {
             </tbody>
           </table>
 
-          <p>-------------------------------------------------------------------</p>
-          <h3 style={{ textAlign: "left" }}>Total: Rs.{total}</h3>
+          <hr></hr>
+          <h3 style={{ textAlign: "left" }}>Total: Rs.{total.toFixed(2)}</h3>
+          <h3 style={{ textAlign: "left" }}>Cash: Rs.{cash.toFixed(2)}</h3>
+          <h3 style={{ textAlign: "left" }}>Balance: Rs.{balance.toFixed(2)}</h3>
 
           <div className="bill-footer">
-            <p>**********************************************************</p>
+            <hr></hr>
             <p>Thank you for your business!</p>
-            <p>**********************************************************</p>
+            <hr></hr>
             <p>Software By: Thushan Chathuranga <br />
               Contact: thushanthemiya@gmail.com </p>
           </div>

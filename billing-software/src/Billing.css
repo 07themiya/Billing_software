@@ -126,3 +126,55 @@
   cursor: pointer !important;
   transition: background-color 0.3s ease !important;
 }
+
+/* Cash and Balance section */
+.cash-balance {
+  margin-top: 20px;
+}
+
+.cash-balance label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.cash-balance input {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 150px;
+}
+
+.cash-balance p {
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.cash-balance {
+  margin-top: 20px;
+}
+
+.cash-balance label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.cash-balance input {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 150px;
+}
+
+.cash-balance h3 {
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+.horizontal_line {
+  width: 90%;
+  height: 5px;
+  border-top: 5px dotted black;
+  line-height: 80%;
+}
