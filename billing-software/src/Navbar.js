@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Import Link
 import { getAuth, signOut } from "firebase/auth";
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import Switch from "@mui/material/Switch";
@@ -65,41 +65,39 @@ function Navbar({ toggleTheme, currentTheme }) {
       try {
         const itemsCollection = collection(db, "items");
         const snapshot = await getDocs(itemsCollection);
-  
+
         if (snapshot.empty) {
           console.warn("Firestore collection 'items' is empty.");
           setNotifications(["No items found in inventory."]);
           return;
         }
-  
+
         const lowStockItems = [];
-  
+
         snapshot.forEach((doc) => {
           const item = doc.data();
           const itemQuantity = parseInt(item.quantity, 10) || 0; // Default to 0 if undefined
           const lowLimit = parseInt(item.lowLimit, 10) || 0; // Default to 0 if undefined
-  
+
           if (!item.itemName) {
             console.warn("Item missing 'itemName':", item);
             return; // Skip this item
           }
-  
+
           if (itemQuantity <= lowLimit) {
             lowStockItems.push(`⚠️ Low stock: ${item.itemName} (${itemQuantity} left)`);
           }
         });
-  
+
         setNotifications(lowStockItems);
       } catch (error) {
         console.error("Error fetching low stock items:", error);
         setNotifications(["⚠️ Error fetching stock data"]);
       }
     };
-  
+
     fetchLowStockItems();
   }, [db]);
-  
-  
 
   const handleLogout = () => {
     signOut(auth)
@@ -115,10 +113,10 @@ function Navbar({ toggleTheme, currentTheme }) {
     <nav className="navbar">
       {/* Left Section */}
       <div className="nav-left">
-        <a href="/add-item">Add Item</a>
-        <a href="/upload">Update</a>
-        <a href="/billhistory">Bill History</a>
-        <a href="/billing">Billing</a>
+        <Link to="/add-item">Add Item</Link>
+        <Link to="/upload">Update</Link>
+        <Link to="/billhistory">Bill History</Link>
+        <Link to="/billing">Billing</Link>
       </div>
 
       {/* Center Section */}
