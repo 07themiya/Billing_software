@@ -1,22 +1,23 @@
 import React, { useState } from "react";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import "../Login.css"; // Add this line to import the CSS file
+import { useNavigate, Link } from "react-router-dom"; // Import Link
+import "../Login.css";
 
-const Login = () => {
+function Login({ setIsLoggedIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     const auth = getAuth();
-
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert("Login successful!");
-      setError("");
-    } catch (err) {
-      setError(err.message);
+      setIsLoggedIn(true); // Update login state
+      navigate("/billing"); // Redirect to Billing page
+    } catch (error) {
+      setError("Invalid email or password. Please try again.");
     }
   };
 
@@ -41,9 +42,9 @@ const Login = () => {
         <button type="submit">Login</button>
       </form>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <p>Don't have an account? <a href="/Register">Register</a></p>
+      <p>Don't have an account? <Link to="/register">Register</Link></p>
     </div>
   );
-};
+}
 
 export default Login;
