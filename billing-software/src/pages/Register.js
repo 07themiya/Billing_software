@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getDatabase, ref, set } from "firebase/database";
+import { useNavigate, Link } from "react-router-dom"; // Import useNavigate and Link
 import "../Register.css"; // Add this line to import the CSS file
 
 const Register = () => {
@@ -10,6 +11,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -38,6 +40,7 @@ const Register = () => {
 
       alert("User registered successfully!");
       setError("");
+      navigate("/login"); // Redirect to Login page after successful registration
     } catch (err) {
       setError(err.message);
     }
@@ -85,7 +88,7 @@ const Register = () => {
         <button type="submit">Register</button>
       </form>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <p>Already have an account? <a href="/Login">Login</a></p>
+      <p>Already have an account? <Link to="/login">Login</Link></p>
     </div>
   );
 };
