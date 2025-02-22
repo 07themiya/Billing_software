@@ -52,7 +52,7 @@ This project is **automatically deployed** on Netlify whenever changes are pushe
 2. Upload the `build` folder to **Netlify**.  
 3. Or link the GitHub repository to **Netlify** for automatic deployments.  
 
-🔗 **Live Demo:** [View on Netlify](https://euphonious-faloodeh-084b2a.netlify.app/)  
+🔗 **Live Demo:** [View on Netlify](https://cute-muffin-f6f421.netlify.app/)  
 
 ---
 
