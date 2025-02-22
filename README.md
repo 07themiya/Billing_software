@@ -16,11 +16,11 @@
 
 ## **📸 Screenshots**  
 ![Application Screenshot](https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%201.png)
-(https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%202.png)  
-(https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%203.png)
-(https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%204.png)
-(https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%205.png)
-(https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%206.png)
+![Application Screenshot](https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%202.png)  
+![Application Screenshot](https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%203.png)
+![Application Screenshot](https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%204.png)
+![Application Screenshot](https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%205.png)
+![Application Screenshot](https://github.com/07themiya/Billing_software/blob/main/billing-software/Screenshot%206.png)
 
 ---
 
