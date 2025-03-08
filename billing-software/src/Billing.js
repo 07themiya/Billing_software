@@ -136,10 +136,19 @@ function Billing() {
     setSelectedItemsToRemove([]); // Clear the selection after removal
   };
 
+  // Function to handle price change for an item
+  const handlePriceChange = (itemId, newPrice) => {
+    setBillItems((prevBillItems) =>
+      prevBillItems.map((item) =>
+        item.id === itemId ? { ...item, price: parseFloat(newPrice) } : item
+      )
+    );
+  };
+
   // Function to save the bill to Firebase and print it
   const handlePrint = () => {
     const db = getDatabase();
-
+  
     // Update stock quantities for each item in the bill
     billItems.forEach((billItem) => {
       const purchaseQuantity = parseInt(billItem.quantity, 10); // Quantity purchased
@@ -147,16 +156,16 @@ function Billing() {
         items.find((item) => item.id === billItem.id)?.quantity || 0,
         10
       ); // Current stock
-
+  
       if (isNaN(purchaseQuantity) || isNaN(currentStock)) {
         console.error(
           `Invalid quantity or stock for item: ${billItem.itemName}. Stock: ${currentStock}, Quantity: ${purchaseQuantity}`
         );
         return; // Skip this item
       }
-
+  
       const updatedQuantity = currentStock - purchaseQuantity;
-
+  
       if (updatedQuantity >= 0) {
         const itemRef = ref(db, `items/${billItem.id}`);
         update(itemRef, { quantity: updatedQuantity }).catch((error) => {
@@ -168,7 +177,7 @@ function Billing() {
         );
       }
     });
-
+  
     // Save the bill to Firebase
     const billRef = ref(db, "Bills");
     const newBill = {
@@ -187,10 +196,10 @@ function Billing() {
       .catch((error) => {
         console.error("Error saving bill:", error);
       });
-
+  
     // Print the bill
     const printContent = printRef.current.innerHTML;
-    const newWindow = window.open("", "_blank", "width=400,height=600");
+    const newWindow = window.open("", "_blank", "width=80mm,height=600");
     newWindow.document.write(`
       <html>
         <head>
@@ -201,21 +210,24 @@ function Billing() {
               margin: 0;
               padding: 0;
               text-align: center;
+              width: 74mm; /* 80mm - 3mm margin on each side */
+              margin: 0 auto; /* Center the content */
             }
             .bill-header {
               margin-bottom: 10px;
               text-align: left;
             }
             .horizontal_line {
-            width: 90%;
-            height: 5px;
-            border-top: 5px dotted black;
-            line-height: 80%;
+              width: 100%;
+              height: 5px;
+              border-top: 5px dotted black;
+              line-height: 80%;
             }
             table {
               width: 100%;
               border-collapse: collapse;
               margin: 10px 0;
+              font-size: 12px; /* Smaller font size for better fit */
             }
             table, th, td {
               border: none;
@@ -226,6 +238,10 @@ function Billing() {
             }
             h3 {
               margin-top: 10px;
+              font-size: 14px; /* Slightly larger for emphasis */
+            }
+            .bill-footer {
+              font-size: 10px; /* Smaller font size for footer */
             }
           </style>
         </head>
@@ -322,6 +338,7 @@ function Billing() {
           </div>
           <div className="bill-items">
             <h3>Bill Items</h3>
+
             <table>
               <thead>
                 <tr>
@@ -332,6 +349,7 @@ function Billing() {
                   <th>Subtotal</th>
                 </tr>
               </thead>
+
               <tbody>
                 {billItems.map((item) => (
                   <tr key={item.id}>
@@ -343,12 +361,21 @@ function Billing() {
                       />
                     </td>
                     <td>{item.itemName}</td>
-                    <td>Rs.{item.price}</td>
+                    <td>
+                      <input
+                      id="price-input"
+                        type="number"
+                        min="0"
+                        value={item.price}
+                        onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                      />
+                    </td>
                     <td>{item.quantity}</td>
                     <td>Rs.{item.price * item.quantity}</td>
                   </tr>
                 ))}
               </tbody>
+              
             </table>
           </div>
           <div className="cash-balance">
@@ -375,7 +402,7 @@ function Billing() {
         </div>
 
         {/* Right Column */}
-        <div className="billing-right" ref={printRef}>
+        <div className="billing-right hide-right-column" ref={printRef}>
           <h2>ABC Hardware</h2>
           <div className="bill-header">
             <p>Contact: +94 71 234 5678</p>
