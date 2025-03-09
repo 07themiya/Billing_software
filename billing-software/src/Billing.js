@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Select from "react-select";
 import { getDatabase, ref, onValue, update, push } from "firebase/database";
+import { MdDeleteForever  } from "react-icons/md"; // Import the trash icon
 import "./App.css";
 import "./Billing.css";
 
@@ -12,7 +13,6 @@ function Billing() {
   const [total, setTotal] = useState(0); // Total is calculated dynamically
   const [isQuotation, setIsQuotation] = useState(false);
   const [billNumber, setBillNumber] = useState("");
-  const [selectedItemsToRemove, setSelectedItemsToRemove] = useState([]);
   const [cash, setCash] = useState(0); // State for cash amount
   const [balance, setBalance] = useState(0); // State for balance amount
 
@@ -119,21 +119,11 @@ function Billing() {
     }
   };
 
-  // Function to handle checkbox selection for item removal
-  const handleCheckboxChange = (itemId) => {
-    setSelectedItemsToRemove((prevSelected) =>
-      prevSelected.includes(itemId)
-        ? prevSelected.filter((id) => id !== itemId) // Deselect if already selected
-        : [...prevSelected, itemId] // Select if not already selected
-    );
-  };
-
-  // Function to remove selected items
-  const handleRemoveItems = () => {
+  // Function to delete an item from the bill
+  const handleDeleteItem = (itemId) => {
     setBillItems((prevBillItems) =>
-      prevBillItems.filter((item) => !selectedItemsToRemove.includes(item.id))
+      prevBillItems.filter((item) => item.id !== itemId)
     );
-    setSelectedItemsToRemove([]); // Clear the selection after removal
   };
 
   // Function to handle price change for an item
@@ -148,7 +138,7 @@ function Billing() {
   // Function to save the bill to Firebase and print it
   const handlePrint = () => {
     const db = getDatabase();
-  
+
     // Update stock quantities for each item in the bill
     billItems.forEach((billItem) => {
       const purchaseQuantity = parseInt(billItem.quantity, 10); // Quantity purchased
@@ -156,16 +146,16 @@ function Billing() {
         items.find((item) => item.id === billItem.id)?.quantity || 0,
         10
       ); // Current stock
-  
+
       if (isNaN(purchaseQuantity) || isNaN(currentStock)) {
         console.error(
           `Invalid quantity or stock for item: ${billItem.itemName}. Stock: ${currentStock}, Quantity: ${purchaseQuantity}`
         );
         return; // Skip this item
       }
-  
+
       const updatedQuantity = currentStock - purchaseQuantity;
-  
+
       if (updatedQuantity >= 0) {
         const itemRef = ref(db, `items/${billItem.id}`);
         update(itemRef, { quantity: updatedQuantity }).catch((error) => {
@@ -177,7 +167,7 @@ function Billing() {
         );
       }
     });
-  
+
     // Save the bill to Firebase
     const billRef = ref(db, "Bills");
     const newBill = {
@@ -196,7 +186,7 @@ function Billing() {
       .catch((error) => {
         console.error("Error saving bill:", error);
       });
-  
+
     // Print the bill
     const printContent = printRef.current.innerHTML;
     const newWindow = window.open("", "_blank", "width=80mm,height=600");
@@ -342,7 +332,7 @@ function Billing() {
             <table>
               <thead>
                 <tr>
-                  <th></th> {/* Checkbox column */}
+                  <th></th> {/* Delete button column */}
                   <th>Item Name</th>
                   <th>Price</th>
                   <th>Quantity</th>
@@ -354,16 +344,17 @@ function Billing() {
                 {billItems.map((item) => (
                   <tr key={item.id}>
                     <td>
-                      <input
-                        type="checkbox"
-                        checked={selectedItemsToRemove.includes(item.id)}
-                        onChange={() => handleCheckboxChange(item.id)}
-                      />
+                      <button
+                        className="delete-button"
+                        onClick={() => handleDeleteItem(item.id)}
+                      >
+                        <MdDeleteForever  size={20} /> {/* Trash icon */}
+                      </button>
                     </td>
                     <td>{item.itemName}</td>
                     <td>
                       <input
-                      id="price-input"
+                        id="price-input"
                         type="number"
                         min="0"
                         value={item.price}
@@ -375,7 +366,6 @@ function Billing() {
                   </tr>
                 ))}
               </tbody>
-              
             </table>
           </div>
           <div className="cash-balance">
@@ -392,9 +382,6 @@ function Billing() {
             <h3>Balance: Rs.{balance.toFixed(2)}</h3>
           </div>
           <div className="action-buttons">
-            <button className="remove-button" onClick={handleRemoveItems}>
-              Remove Item
-            </button>
             <button className="print-button" onClick={handlePrint}>
               Print
             </button>
@@ -405,11 +392,12 @@ function Billing() {
         <div className="billing-right hide-right-column" ref={printRef}>
           <h2>ABC Hardware</h2>
           <div className="bill-header">
-            <p>Contact: +94 71 234 5678</p>
-            <p>Address: 123 Main Street, Colombo</p>
+            <p>Contact: +94 71 234 5678<br/>
+            Address: 123 Main Street, Colombo</p>
             <hr></hr>
-            <p>Date: {new Date().toLocaleDateString()} Time: {new Date().toLocaleTimeString()}</p>
-            <p>Bill Number: {billNumber}</p>
+            <p>Date: {new Date().toLocaleDateString()}&nbsp; 
+            Time: {new Date().toLocaleTimeString()}<br/>
+            Bill Number: {billNumber}</p>
             <hr></hr>
           </div>
           <table>
@@ -432,20 +420,44 @@ function Billing() {
           </table>
 
           <hr></hr>
-          <h3 style={{ textAlign: "left" }}>Total: Rs.{total.toFixed(2)}</h3>
-          <h3 style={{ textAlign: "left" }}>Cash: Rs.{cash.toFixed(2)}</h3>
-          <h3 style={{ textAlign: "left" }}>Balance: Rs.{balance.toFixed(2)}</h3>
+          <table className="summary-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><h3>Total:</h3></td>
+                <td>&nbsp;</td> 
+                <td><h3>Rs.{total.toFixed(2)}</h3></td>
+              </tr>
+
+              <tr>
+                <td><h3>Cash:</h3></td>
+                <td>&nbsp;</td> 
+                <td><h3>Rs.{cash.toFixed(2)}</h3></td>
+              </tr>
+
+              <tr>
+                <td><h3>Balance:</h3></td>
+                <td>&nbsp;</td> 
+                <td><h3>Rs.{balance.toFixed(2)}</h3></td>
+              </tr>
+
+            </tbody>
+          </table>
 
           <div className="bill-footer">
             <hr></hr>
             <p>Thank you for your business!</p>
             <hr></hr>
-            <p>Software By: Thushan Chathuranga <br />
+            <p style={{ fontSize: "10px" }}>Software By: Thushan Chathuranga <br />
               Contact: thushanthemiya@gmail.com </p>
           </div>
-
         </div>
-
       </div>
     </div>
   );

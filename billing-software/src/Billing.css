@@ -1,10 +1,12 @@
 .billing-page {
-  padding: 20px;
+  padding: 10px; /* Reduce padding to move it up */
   display: flex;
   justify-content: center; /* Center the container horizontally */
-  align-items: center; /* Center the container vertically */
-  min-height: 100vh; /* Ensure the page takes up the full viewport height */
+  align-items: flex-start; /* Align to the top instead of center */
+  min-height: auto; /* Remove unnecessary extra height */
+  margin-top: 20px; /* Adjust the margin as needed */
 }
+
 
 .billing-container {
   display: flex;
@@ -196,22 +198,46 @@
   line-height: 80%;
 }
 
-/* Hide the right column visually */
-.hide-right-column {
-  visibility: hidden; /* Hides the content but keeps it in the DOM */
-  position: absolute; /* Removes it from the layout flow */
-  width: 0; /* Ensures it doesn't take up space */
-  height: 0; /* Ensures it doesn't take up space */
-  overflow: hidden; /* Prevents any accidental overflow */
+.delete-button {
+  font-size: 24px; /* Adjust icon size */
+  color: #d32f2f; /* Default red color */
+  cursor: pointer; /* Pointer on hover */
+  padding: 4px; /* Reduce padding to make the red box smaller */
+  border-radius: 4px; /* Slightly rounded corners */
+  transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
 
-/* Ensure the right column is visible when printing */
-@media print {
-  .hide-right-column {
-    visibility: visible; /* Make it visible for printing */
-    position: static; /* Reset positioning */
-    width: auto; /* Reset width */
-    height: auto; /* Reset height */
-    overflow: visible; /* Reset overflow */
-  }
+.delete-button:hover {
+  color: #cc0000; /* Darker red on hover */
+  background-color: rgba(255, 0, 0, 0.1); /* Semi-transparent red background */
+  transform: scale(1.1); /* Slightly enlarge */
+}
+
+.delete-button:active {
+  transform: scale(0.95); /* Slightly shrink when clicked */
+}
+
+.billing-right h3 {
+  text-align: right; /* Align text to the right */
+  margin-right: 10px; /* Add slight spacing from the edge */
+}
+
+.billing-right h3 {
+  display: flex;
+  justify-content: space-between; /* Push label left & amount right */
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse; /* Remove spacing between rows */
+}
+
+.summary-table td {
+  padding: 5px 10px ; /* Adjust padding as needed */
+  vertical-align: middle; /* Align content properly */
+}
+
+.summary-table h3 {
+  margin: 0; /* Remove extra space caused by default h3 margins */
+  padding: 0;
 }
