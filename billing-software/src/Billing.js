@@ -15,6 +15,7 @@ function Billing() {
   const [billNumber, setBillNumber] = useState("");
   const [cash, setCash] = useState(0); // State for cash amount
   const [balance, setBalance] = useState(0); // State for balance amount
+  const [discount, setDiscount] = useState(0); // State for discount percentage
 
   const printRef = useRef(null);
 
@@ -88,8 +89,15 @@ function Billing() {
       (acc, item) => acc + item.price * item.quantity,
       0
     );
-    setTotal(totalAmount);
-  }, [billItems]);
+  
+    // Calculate discount amount
+    const discountAmount = (totalAmount * discount) / 100;
+  
+    // Update total after discount
+    const discountedTotal = totalAmount - discountAmount;
+  
+    setTotal(discountedTotal);
+  }, [billItems, discount]); // Recalculate when billItems or discount changes
 
   // Calculate balance dynamically whenever cash or total changes
   useEffect(() => {
@@ -138,7 +146,7 @@ function Billing() {
   // Function to save the bill to Firebase and print it
   const handlePrint = () => {
     const db = getDatabase();
-
+  
     // Update stock quantities for each item in the bill
     billItems.forEach((billItem) => {
       const purchaseQuantity = parseInt(billItem.quantity, 10); // Quantity purchased
@@ -146,16 +154,16 @@ function Billing() {
         items.find((item) => item.id === billItem.id)?.quantity || 0,
         10
       ); // Current stock
-
+  
       if (isNaN(purchaseQuantity) || isNaN(currentStock)) {
         console.error(
           `Invalid quantity or stock for item: ${billItem.itemName}. Stock: ${currentStock}, Quantity: ${purchaseQuantity}`
         );
         return; // Skip this item
       }
-
+  
       const updatedQuantity = currentStock - purchaseQuantity;
-
+  
       if (updatedQuantity >= 0) {
         const itemRef = ref(db, `items/${billItem.id}`);
         update(itemRef, { quantity: updatedQuantity }).catch((error) => {
@@ -167,7 +175,7 @@ function Billing() {
         );
       }
     });
-
+  
     // Save the bill to Firebase
     const billRef = ref(db, "Bills");
     const newBill = {
@@ -186,11 +194,12 @@ function Billing() {
       .catch((error) => {
         console.error("Error saving bill:", error);
       });
-
-    // Print the bill
-    const printContent = printRef.current.innerHTML;
-    const newWindow = window.open("", "_blank", "width=80mm,height=600");
-    newWindow.document.write(`
+  
+    // Calculate discount amount
+    const discountAmount = (total * discount) / 100;
+  
+    // Generate the bill content
+    const printContent = `
       <html>
         <head>
           <title>Print Bill</title>
@@ -200,46 +209,96 @@ function Billing() {
               margin: 0;
               padding: 0;
               text-align: center;
-              width: 74mm; /* 80mm - 3mm margin on each side */
-              margin: 0 auto; /* Center the content */
+              width: 80mm; /* Set width to 8cm */
+              margin: 0 auto;
+              font-size: 10px; /* Smaller font size for compact layout */
             }
+  
             .bill-header {
-              margin-bottom: 10px;
+              margin-bottom: 5px;
               text-align: left;
+              font-size: 12px;
             }
-            .horizontal_line {
-              width: 100%;
-              height: 5px;
-              border-top: 5px dotted black;
-              line-height: 80%;
+  
+            .bill-header p {
+              margin: 2px 0;
             }
+  
             table {
               width: 100%;
               border-collapse: collapse;
-              margin: 10px 0;
-              font-size: 12px; /* Smaller font size for better fit */
+              margin: 5px 0;
+              font-size: 10px;
             }
+  
             table, th, td {
               border: none;
-            }
-            th, td {
-              padding: 5px;
+              padding: 3px;
               text-align: left;
             }
+  
             h3 {
-              margin-top: 10px;
-              font-size: 14px; /* Slightly larger for emphasis */
+              margin-top: 5px;
+              font-size: 12px;
             }
+  
             .bill-footer {
-              font-size: 10px; /* Smaller font size for footer */
+              font-size: 8px;
+              margin-top: 5px;
             }
           </style>
         </head>
         <body>
-          ${printContent}
+          <div class="bill-header">
+            <h2 style="text-align: center;">ABC Hardware</h2>
+            <p>Contact: +94 71 234 5678</p>
+            <p>Address: 123 Main Street, Colombo</p>
+            <hr>
+            <p>Date: ${new Date().toLocaleDateString()} | Time: ${new Date().toLocaleTimeString()}</p>
+            <p>Bill Number: ${billNumber}</p>
+            <hr>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${billItems.map((item) => `
+                <tr>
+                  <td>${item.itemName}</td>
+                  <td style="text-align: center;">${item.quantity}</td>
+                  <td>Rs.${item.price * item.quantity}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+          <hr>
+          <div>
+          <h3>Total: Rs.${(total + discountAmount).toFixed(2)}</h3>
+          <h3>Discount: (${discount}%)</h3>
+          <h3>You Have saved: Rs.${discountAmount.toFixed(2)}</h3>
+          <h3>Discounted Total: Rs.${total.toFixed(2)}</h3>
+          <h3>Cash: Rs.${cash.toFixed(2)}</h3>
+          <h3>Balance: Rs.${balance.toFixed(2)}</h3>
+          </div>
+          <div class="bill-footer">
+            <hr>
+            <p>Thank you for your business!</p>
+            <hr>
+            <p>Software By: Thushan Chathuranga</p>
+            <p>Contact: thushanthemiya@gmail.com</p>
+          </div>
         </body>
       </html>
-    `);
+    `;
+  
+    // Open a new window for printing
+    const newWindow = window.open("", "_blank", "width=80mm,height=600");
+    newWindow.document.write(printContent);
     newWindow.document.close();
     newWindow.print();
   };
@@ -370,6 +429,16 @@ function Billing() {
           </div>
           <div className="cash-balance">
             <h3>Total: Rs.{total.toFixed(2)}</h3>
+            <label htmlFor="discount-input">Discount (%):</label>
+            <input
+              id="discount-input"
+              type="number"
+              min="0"
+              max="100"
+              value={discount}
+              onChange={(e) => setDiscount(parseFloat(e.target.value))}
+              placeholder="Discount"
+            />
             <label htmlFor="cash-input">Cash:</label>
             <input
               id="cash-input"
@@ -420,42 +489,16 @@ function Billing() {
           </table>
 
           <hr></hr>
-          <table className="summary-table">
-            <thead>
-              <tr>
-                <th></th>
-                <th></th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><h3>Total:</h3></td>
-                <td>&nbsp;</td> 
-                <td><h3>Rs.{total.toFixed(2)}</h3></td>
-              </tr>
 
-              <tr>
-                <td><h3>Cash:</h3></td>
-                <td>&nbsp;</td> 
-                <td><h3>Rs.{cash.toFixed(2)}</h3></td>
-              </tr>
-
-              <tr>
-                <td><h3>Balance:</h3></td>
-                <td>&nbsp;</td> 
-                <td><h3>Rs.{balance.toFixed(2)}</h3></td>
-              </tr>
-
-            </tbody>
-          </table>
+              <h3>Total: &nbsp;Rs.{total.toFixed(2)} <br/>
+              Cash: &nbsp;Rs.{cash.toFixed(2)} <br/>
+              Balance: &nbsp;Rs.{balance.toFixed(2)}</h3>
 
           <div className="bill-footer">
             <hr></hr>
             <p>Thank you for your business!</p>
             <hr></hr>
-            <p style={{ fontSize: "10px" }}>Software By: Thushan Chathuranga <br />
-              Contact: thushanthemiya@gmail.com </p>
+            <p style={{ fontSize: "10px" }}>Software By: Thushan Chathuranga <br />Contact: thushanthemiya@gmail.com</p>
           </div>
         </div>
       </div>
