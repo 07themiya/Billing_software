@@ -16,6 +16,7 @@ function Billing() {
   const [cash, setCash] = useState(0); // State for cash amount
   const [balance, setBalance] = useState(0); // State for balance amount
   const [discount, setDiscount] = useState(0); // State for discount percentage
+  
 
   const printRef = useRef(null);
 
@@ -175,6 +176,12 @@ function Billing() {
         );
       }
     });
+
+        // Calculate discount amount
+        const discountAmount = (total * discount) / 100;
+
+        // Calculate discounted total
+    const discountedTotal = total - discountAmount;
   
     // Save the bill to Firebase
     const billRef = ref(db, "Bills");
@@ -182,6 +189,9 @@ function Billing() {
       billNumber,
       items: billItems,
       total: total,
+      discountedTotal: discountedTotal, // Add discounted total
+      discount: discount, // Save discount percentage
+      discountAmount: discountAmount, // Save discount amount
       cash: cash,
       balance: balance,
       date: new Date().toLocaleDateString(),
@@ -194,9 +204,6 @@ function Billing() {
       .catch((error) => {
         console.error("Error saving bill:", error);
       });
-  
-    // Calculate discount amount
-    const discountAmount = (total * discount) / 100;
   
     // Generate the bill content
     const printContent = `
@@ -260,7 +267,7 @@ function Billing() {
           </div>
           <table>
             <thead>
-              <tr>
+              <tr style="font-size: 10px;">
                 <th>Item Name</th>
                 <th>Quantity</th>
                 <th>Price</th>
@@ -268,7 +275,7 @@ function Billing() {
             </thead>
             <tbody>
               ${billItems.map((item) => `
-                <tr>
+                <tr style="font-size: 18px;">
                   <td>${item.itemName}</td>
                   <td style="text-align: center;">${item.quantity}</td>
                   <td>Rs.${item.price * item.quantity}</td>
@@ -276,18 +283,18 @@ function Billing() {
               `).join("")}
             </tbody>
           </table>
-          <hr>
-          <div>
-          <h3>Total: Rs.${(total + discountAmount).toFixed(2)}</h3>
-          <h3>Discount: (${discount}%)</h3>
-          <h3>You Have saved: Rs.${discountAmount.toFixed(2)}</h3>
-          <h3>Discounted Total: Rs.${total.toFixed(2)}</h3>
-          <h3>Cash: Rs.${cash.toFixed(2)}</h3>
-          <h3>Balance: Rs.${balance.toFixed(2)}</h3>
+          <hr style="height: 5px; background-color: black; border: none;">
+          <div style="text-align: left;">
+            <h3 style="margin-bottom: 10px; font-size: 15px; font-weight: normal;">Total: Rs.${(total + discountAmount).toFixed(2)}</h3>
+            <h3 style="margin-bottom: 10px; font-size: 15px; font-weight: normal;">Discount: (${discount}%)</h3>
+            <h3 style="margin-bottom: 10px; font-size: 15px; font-weight: normal;">You Have saved: Rs.${discountAmount.toFixed(2)}</h3>
+            <h3 style="margin-bottom: 10px; font-size: 18px;">Discounted Total: Rs.${total.toFixed(2)}</h3>
+            <h3 style="margin-bottom: 10px; font-size: 15px; font-weight: normal;">Cash: Rs.${cash.toFixed(2)}</h3>
+            <h3 style="font-size: 15px; font-weight: normal;">Balance: Rs.${balance.toFixed(2)}</h3> 
           </div>
           <div class="bill-footer">
             <hr>
-            <p>Thank you for your business!</p>
+            <p style="font-size: 10px;">ස්තූතියි නැවත එන්න...</p>
             <hr>
             <p>Software By: Thushan Chathuranga</p>
             <p>Contact: thushanthemiya@gmail.com</p>

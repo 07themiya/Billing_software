@@ -223,3 +223,22 @@
   padding: 0;
 }
 
+/* Hide the right column visually */
+.hide-right-column {
+  visibility: hidden; /* Hides the content but keeps it in the DOM */
+  position: absolute; /* Removes it from the layout flow */
+  width: 0; /* Ensures it doesn't take up space */
+  height: 0; /* Ensures it doesn't take up space */
+  overflow: hidden; /* Prevents any accidental overflow */
+}
+
+/* Ensure the right column is visible when printing */
+@media print {
+  .hide-right-column {
+    visibility: visible; /* Make it visible for printing */
+    position: static; /* Reset positioning */
+    width: auto; /* Reset width */
+    height: auto; /* Reset height */
+    overflow: visible; /* Reset overflow */
+  }
+}

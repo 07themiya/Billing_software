@@ -115,6 +115,7 @@ function Navbar({ toggleTheme, currentTheme }) {
       <div className="nav-left">
         <Link to="/add-item">Add Item</Link>
         <Link to="/upload">Update</Link>
+        <Link to="/credit">Credit</Link>
         <Link to="/billhistory">Bill History</Link>
         <Link to="/billing">Billing</Link>
       </div>
