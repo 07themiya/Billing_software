@@ -5,7 +5,7 @@ import "./AddItem.css";
 
 const AddItem = () => {
   const [items, setItems] = useState([
-    { itemName: "", price: "", quantity: "", lowLimit: "" },
+    { itemName: "", searchKey: "", price: "", quantity: "", lowLimit: "" },
   ]);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -18,22 +18,28 @@ const AddItem = () => {
   const addNewItemRow = () => {
     setItems([
       ...items,
-      { itemName: "", price: "", quantity: "", lowLimit: "" },
+      { itemName: "", searchKey: "", price: "", quantity: "", lowLimit: "" },
     ]);
   };
 
   const handleAddItems = () => {
-    const database = getDatabase(app); // Pass the initialized app here
+    const database = getDatabase(app);
     const itemsRef = ref(database, "items");
-
+  
     items.forEach((item) => {
       const newItem = {
         itemName: item.itemName,
-        price: parseFloat(item.price),
-        quantity: parseInt(item.quantity),
-        lowLimit: parseInt(item.lowLimit),
+        searchKey: item.searchKey, // Added searchKey field
+        price: item.price ? parseFloat(item.price) : 0, // Ensure valid number
+        quantity: item.quantity ? parseInt(item.quantity) : 0, // Ensure valid number
+        lowLimit: item.lowLimit ? parseInt(item.lowLimit) : 0, // Ensure valid number
       };
-
+  
+      if (!newItem.itemName || !newItem.searchKey) {
+        console.error("Item Name and Search Key are required!");
+        return;
+      }
+  
       push(itemsRef, newItem)
         .then(() => {
           setSuccessMessage("Items added successfully!");
@@ -42,10 +48,11 @@ const AddItem = () => {
           console.error("Error adding items: ", error);
         });
     });
-
+  
     // Clear all input rows after successful addition
-    setItems([{ itemName: "", price: "", quantity: "", lowLimit: "" }]);
+    setItems([{ itemName: "", searchKey: "", price: "", quantity: "", lowLimit: "" }]);
   };
+  
 
   return (
     <div className="add-item-container">
@@ -58,38 +65,37 @@ const AddItem = () => {
         <div className="item-row" key={index}>
           <input
             type="text"
-            placeholder="Item Name"
+            placeholder="Item Name (Sinhala)"
             value={item.itemName}
-            onChange={(e) =>
-              handleInputChange(index, "itemName", e.target.value)
-            }
+            onChange={(e) => handleInputChange(index, "itemName", e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Search Key (English)"
+            value={item.searchKey}
+            onChange={(e) => handleInputChange(index, "searchKey", e.target.value)}
             required
           />
           <input
             type="number"
             placeholder="Price"
             value={item.price}
-            onChange={(e) =>
-              handleInputChange(index, "price", e.target.value)
-            }
+            onChange={(e) => handleInputChange(index, "price", e.target.value)}
             required
           />
           <input
             type="number"
             placeholder="Quantity"
             value={item.quantity}
-            onChange={(e) =>
-              handleInputChange(index, "quantity", e.target.value)
-            }
+            onChange={(e) => handleInputChange(index, "quantity", e.target.value)}
             required
           />
           <input
             type="number"
             placeholder="Low Limit"
             value={item.lowLimit}
-            onChange={(e) =>
-              handleInputChange(index, "lowLimit", e.target.value)
-            }
+            onChange={(e) => handleInputChange(index, "lowLimit", e.target.value)}
             required
           />
         </div>

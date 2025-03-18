@@ -110,7 +110,6 @@ function Billing() {
     if (item) {
       const existingItem = billItems.find((billItem) => billItem.id === item.id);
       if (existingItem) {
-        // Update quantity if the item is already added
         setBillItems((prevBillItems) =>
           prevBillItems.map((billItem) =>
             billItem.id === item.id
@@ -119,14 +118,13 @@ function Billing() {
           )
         );
       } else {
-        // Add new item to bill
         setBillItems((prevBillItems) => [
           ...prevBillItems,
           { ...item, quantity: parseInt(quantity) },
         ]);
       }
     }
-  };
+  }; 
 
   // Function to delete an item from the bill
   const handleDeleteItem = (itemId) => {
@@ -285,7 +283,7 @@ function Billing() {
           </table>
           <hr style="height: 5px; background-color: black; border: none;">
           <div style="text-align: left;">
-            <h3 style="margin-bottom: 10px; font-size: 15px; font-weight: normal;">Total: Rs.${(total + discountAmount).toFixed(2)}</h3>
+            <h3 style="margin-bottom: 10px; font-size: 18px;">Total: Rs.${(total + discountAmount).toFixed(2)}</h3>
             <h3 style="margin-bottom: 10px; font-size: 15px; font-weight: normal;">Discount: (${discount}%)</h3>
             <h3 style="margin-bottom: 10px; font-size: 15px; font-weight: normal;">You Have saved: Rs.${discountAmount.toFixed(2)}</h3>
             <h3 style="margin-bottom: 10px; font-size: 18px;">Discounted Total: Rs.${total.toFixed(2)}</h3>
@@ -294,7 +292,7 @@ function Billing() {
           </div>
           <div class="bill-footer">
             <hr>
-            <p style="font-size: 10px;">ස්තූතියි නැවත එන්න...</p>
+          <p style="font-size: 10px;">Thank You. Come Again</p>
             <hr>
             <p>Software By: Thushan Chathuranga</p>
             <p>Contact: thushanthemiya@gmail.com</p>
@@ -323,8 +321,9 @@ function Billing() {
   };
 
   const options = items.map((item) => ({
-    value: item.id,
-    label: `${item.itemName} - Rs.${item.price}`,
+    value: item.id, // Use the item ID as the value
+    label: item.itemName, // Display the Sinhala itemName
+    searchKey: item.searchKey, // Include the searchKey for filtering
   }));
 
   const handleChange = (selectedOption) => {
@@ -339,6 +338,7 @@ function Billing() {
           <h2>Billing Process</h2>
           <div className="billing-form">
             <label htmlFor="item-select">Select Item:</label>
+
             <Select
               className="basic-single"
               classNamePrefix="select"
@@ -349,20 +349,25 @@ function Billing() {
               name="item"
               options={options}
               placeholder="Select Item"
-              menuPortalTarget={document.body} // Ensures the dropdown can expand beyond the container
+              filterOption={(option, inputValue) =>
+                option.data.searchKey.toLowerCase().includes(inputValue.toLowerCase()) // Filter by searchKey
+              }
+              getOptionLabel={(option) => option.label} // Display itemName in the dropdown
+              getOptionValue={(option) => option.value} // Use item ID as the value
+              menuPortalTarget={document.body}
               styles={{
                 menuPortal: (base) => ({
                   ...base,
-                  zIndex: 9999, // Ensures the dropdown is above other elements
+                  zIndex: 9999,
                 }),
                 menu: (base) => ({
                   ...base,
-                  width: "300px", // Adjust the dropdown menu width
+                  width: "300px",
                 }),
                 control: (base) => ({
                   ...base,
                   height: "50px",
-                  width: "300px", // Adjust the search bar width
+                  width: "300px",
                   minHeight: "30px",
                   minWidth: "300px",
                 }),
@@ -391,6 +396,7 @@ function Billing() {
             <button className="new-bill-button" onClick={handleNewBill}>
               New Bill
             </button>
+            <p>Bill Number: {billNumber}</p>
           </div>
           <div className="bill-items">
             <h3>Bill Items</h3>
